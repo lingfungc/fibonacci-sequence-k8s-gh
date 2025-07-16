@@ -44,25 +44,19 @@ jobs:
         run: |
           echo "SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
-      - name: Set Google Cloud Service Key
-        uses: "google-github-actions/auth@v0"
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          credentials_json: "${{ secrets.GKE_SA_KEY }}"
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Set Google Cloud Project
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          project_id: ${{ env.PROJECT_ID }}
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
 
-      - name: Google Cloud Auth
-        run: |-
-          gcloud --quiet auth configure-docker
-
-      - name: Get Google Clould Credentials
-        uses: google-github-actions/get-gke-credentials@v0
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_ZONE }}
+      - name: Configure gcloud
+        run: |
+          gcloud config set project $PROJECT_ID
+          gcloud config set compute/zone $GKE_ZONE
+          gcloud container clusters get-credentials $GKE_CLUSTER
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
